@@ -18,6 +18,10 @@ e.g.
 ```
 # CGO_LDFLAGS=/usr/lib64/libstoragemgmt.so go build -o localdisk
 ```
+or 
+```
+make build-localdisk
+```
 
 ## Running the tool
 1. Example options
