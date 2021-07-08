@@ -9,5 +9,5 @@ REV=$(shell git describe --long --tags --match='v*' --dirty 2>/dev/null || git r
 
 
 build-localdisk:
-	env CGO_LDFLAGS=/usr/lib64/libstoragemgmt.so GOOS=$(TARGET_GOOS) GOARCH=$(TARGET_GOARCH) go build -mod=vendor -o $(TARGET_DIR)/localdisk .
+	env CGO_LDFLAGS=/usr/lib64/libstoragemgmt.so GOOS=$(TARGET_GOOS) GOARCH=$(TARGET_GOARCH) go build -mod=vendor -ldflags '-X main.version=$(REV)' -o $(TARGET_DIR)/localdisk .
 	echo "Writing binary to: $(TARGET_DIR)/localdisk"

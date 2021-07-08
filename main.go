@@ -20,6 +20,8 @@ import (
 	localdisk "github.com/libstorage/libstoragemgmt-golang/localdisk"
 )
 
+var version = "dev"
+
 var healthText = map[lsm.DiskHealthStatus]string{
 	lsm.DiskHealthStatusUnknown: "Unknown",
 	lsm.DiskHealthStatusFail:    "Fail",
@@ -293,7 +295,12 @@ func main() {
 	getDiskPtr := flag.String("show", "", "show a specific disk matching given /dev name")
 	setFailOnPtr := flag.String("fail-led-on", "", "activate fail LED on a given device")
 	setFailOffPtr := flag.String("fail-led-off", "", "de-activate fail LED on a given device")
+	versionPtr := flag.Bool("version", true, "print version")
 	flag.Parse()
+
+	if *versionPtr {
+		fmt.Printf("version: %q\n", version)
+	}
 
 	if *listDisksPtr {
 		listDisks()
