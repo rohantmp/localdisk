@@ -1,0 +1,5 @@
+# github.com/libstorage/libstoragemgmt-golang v0.0.0-20210629153134-ee0a544fee88
+## explicit
+github.com/libstorage/libstoragemgmt-golang
+github.com/libstorage/libstoragemgmt-golang/errors
+github.com/libstorage/libstoragemgmt-golang/localdisk
