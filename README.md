@@ -3,6 +3,23 @@ Example project showing how the libstoragemgmt-golang package can be used to int
 
 Obviously, as an admin you can just run the lsmcli commands directly, but this project shows how you can interact with libstoragemgmt programmatically for automation, or platform integration.
 
+
+## Building the source using docker (does not require installing libstoragemgmt or any dependencies):
+
+```
+docker build --target builder -f Dockerfile . -t localdisk-builder
+docker build --cache-from localdisk-builder -f Dockerfile -t localdisk
+```
+
+## Running the tool using docker (SMART apis require a privileged container/root)
+
+```
+docker run  --privileged --pid=host --user root $(for i in dev sys proc ;do echo --mount type=bind,source=/$i,target=/$i;done) localdisk -list
+```
+
+---
+## Without Docker:
+
 ## Prerequisites
 1. For build and testing you need the following rpms installed on your system
 - libstoragemgmt
