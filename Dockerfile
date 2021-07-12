@@ -2,8 +2,9 @@ FROM quay.io/centos/centos:stream8 as builder
 
 
 RUN dnf config-manager --set-enabled powertools
-
+RUN dnf upgrade -y
 RUN dnf install -y libstoragemgmt libstoragemgmt-devel golang go-toolset make git gcc 
+
 RUN mkdir -p /go && chmod -R 777 /go 
 
 ENV GOPATH=/go \
@@ -18,7 +19,7 @@ RUN make build-localdisk
 
 FROM quay.io/centos/centos:stream8
 
-RUN dnf install -y libstoragemgmt
+RUN dnf install -y libstoragemgmt && dnf clean all
 
 COPY --from=builder /go/src/github.com/pcuzner/localdisk/_output/bin/localdisk /usr/bin/
 

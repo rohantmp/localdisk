@@ -6,9 +6,13 @@ Obviously, as an admin you can just run the lsmcli commands directly, but this p
 
 ## Building the source using docker (does not require installing libstoragemgmt or any dependencies):
 
+Build and cache base image so that the final image can be rebuilt without redownloading all the packages:
 ```
 docker build --target builder -f Dockerfile . -t localdisk-builder
-docker build --cache-from localdisk-builder -f Dockerfile -t localdisk
+```
+Build the final image. If pushing to your own repo, replace localdisk with <registry>/<username>/localdisk (e.g. docker.io/my-username/localdisk)
+```
+docker build --cache-from localdisk-builder -f Dockerfile . -t localdisk
 ```
 
 ## Running the tool using docker (SMART apis require a privileged container/root)
@@ -16,6 +20,42 @@ docker build --cache-from localdisk-builder -f Dockerfile -t localdisk
 ```
 docker run  --privileged --pid=host --user root $(for i in dev sys proc ;do echo --mount type=bind,source=/$i,target=/$i;done) localdisk -list
 ```
+## Running the tool on a specific node in kubernetes:
+Clone this repo:
+```
+git clone https://github.com/rohantmp/localdisk.git;
+cd localdisk;
+```
+Get nodes and choose one with storage:
+```
+oc get node;
+```
+```
+NAME    STATUS     ROLES           AGE   VERSION
+node0   Ready      master,worker   55d   v1.20.0+7d0a2b2
+node1   NotReady   master,worker   55d   v1.20.0+7d0a2b2
+node2   Ready      master,worker   55d   v1.20.0+7d0a2b2
+```
+Apply job (substitute nodename):
+```
+oc delete job,po -l name=localdisk;
+NODENAME=node0;
+sed testjob.yaml -e "s/HOSTNAME/${NODENAME}/g"|oc apply -f -;
+```
+Get logs
+```
+oc wait job -l name=localdisk --for=condition=complete --timeout=3m; oc logs -l name=localdisk
+```
+Example Output:
+```
+version: "c97916e2f29de80f019d32ab35638f53d7ba8e27"
+Device Path        Type Serial Number              Size Sector  Transport   RPM Bus Speed       IDENT        FAIL  Health           Vendor            Model Revision                 wwid
+/dev/sda          Flash 000e2ee7f4c43fde2700061189f0a7ce       893.8 GiB    512 Not supported by LSM     0         0 Unavailable Unavailable Unknown             DELL  PERC H740P Mini     5.13 naa.62cea7f08911060027de3fc4f4e72e0e
+/dev/nvme0n1        HDD                             0 B    4KN    Unknown    -1         0 Unavailable Unavailable    Good                  Dell Express Flash NVMe P4610 1.6TB SFF                              
+/dev/nvme1n1        HDD                             0 B    4KN    Unknown    -1         0 Unavailable Unavailable    Good                  Dell Express Flash NVMe P4610 1.6TB SFF                              
+/dev/nvme2n1        HDD                             0 B    4KN    Unknown    -1         0 Unavailable Unavailable    Good                  Dell Express Flash NVMe P4610 1.6TB SFF                              
+```
+
 
 ---
 ## Without Docker:

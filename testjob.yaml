@@ -1,0 +1,63 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-script
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: localdisk
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: localdisk
+          args: ['-list']
+          securityContext:
+            privileged: true
+          nodeSelector:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - "HOSTNAME"
+          image: docker.io/rohantmp/localdisk
+          volumeMounts:
+          - mountPath: /mnt/local-storage
+            mountPropagation: HostToContainer
+            name: local-disks
+          - mountPath: /dev
+            mountPropagation: HostToContainer
+            name: dev
+          - mountPath: /sys
+            mountPropagation: HostToContainer
+            name: sys
+          - mountPath: /proc
+            mountPropagation: HostToContainer
+            name: proc
+          - mountPath: /run/udev
+            mountPropagation: HostToContainer
+            name: run-udev
+      volumes:
+      - hostPath:
+          path: /mnt/local-storage
+          type: ""
+        name: local-disks
+      - hostPath:
+          path: /dev
+          type: Directory
+        name: dev
+      - hostPath:
+          path: /sys
+          type: Directory
+        name: sys
+      - hostPath:
+          path: /proc
+          type: Directory
+        name: proc
+      - hostPath:
+          path: /run/udev
+          type: ""
+        name: run-udev
