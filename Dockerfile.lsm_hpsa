@@ -1,0 +1,15 @@
+FROM quay.io/centos/centos:stream8 
+
+
+RUN dnf config-manager --set-enabled powertools
+RUN dnf upgrade -y
+RUN dnf install -y libstoragemgmt libstoragemgmt-devel libstoragemgmt-hpsa-plugin
+RUN dnf install -y http://downloads.linux.hpe.com/SDR/repo/spp/RedHat/8/x86_64/current/ssacli-4.21-7.0.x86_64.rpm
+
+COPY lsmcli_wrapper.sh /usr/bin/lsmcli_wrapper.sh
+
+ENV LSMCLI_URI=hpsa://?ssacli=/usr/sbin/ssacli
+
+ENTRYPOINT ["/usr/bin/lsmcli_wrapper.sh"]
+
+

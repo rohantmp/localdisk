@@ -1,4 +1,66 @@
-# localdisk
+# Testing libstoragemgmt plugin support on HPE smart arrays
+
+Build the image:
+(replace docker.io/rohantmp/lsm_hpsa:latest with your image tag in all commands, or skip the build and directly use the image)
+```
+docker build -f Dockerfile.lsm_hpsa . -t docker.io/rohantmp/lsm_hpsa:latest
+```
+Run it on the HP machine:
+```
+podman run --privileged --pid=host --user root $(for i in dev sys proc ;do echo --mount type=bind,source=/$i,target=/$i;done)  docker.io/rohantmp/lsm_hpsa:latest list --type=DISKS
+```
+Example output:
+```
+ID                 | Name                       | Type | Size | Status | System ID      | SCSI VPD 0x83 | Disk Paths | Revolutions Per Minute | Link Type
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+BTHV603000TL400NGN | ATA     MK0400GEYKD 1I:1:2 | SSD  | 0    | OK     | PDNNK0BRH571XZ |               |            | Non-Rotating Medium    | PATA/SATA
+17V3K9U7F1EA       | ATA     MB1000GDUNU 1I:1:1 | SATA | 0    | OK     | PDNNK0BRH571XZ |               |            | 7200                   | PATA/SATA
+```
+List systems and note the ID (in this case it's `PDNNK0BRH571XZ`):
+```
+podman run --privileged --pid=host --user root $(for i in dev sys proc ;do echo --mount type=bind,source=/$i,target=/$i;done)  docker.io/rohantmp/lsm_hpsa:latest list --type=SYSTEMS
+```
+Example output:
+```
+ID             | Name                                 | Status | Info                      | FW Ver | Mode    | Read Cache Percentage
+-------------------------------------------------------------------------------------------------------------------------------------
+PDNNK0BRH571XZ | Smart HBA H240 in Slot 1 (RAID Mode) | OK     |  "Controller Status"=[OK] | 4.52-0 | HW RAID | -1      
+```
+Use the id from the previous step to list capablities for each system:
+```
+podman run --privileged --pid=host --user root $(for i in dev sys proc ;do echo --mount type=bind,source=/$i,target=/$i;done) docker.io/rohantmp/lsm_hpsa:latest capabilities --sys=PDNNK0BRH571XZ                                    
+```
+Example output:
+```
+--------------------------------------------------------------
+BATTERIES                                        | SUPPORTED  
+DISKS                                            | SUPPORTED  
+DISK_LOCATION                                    | SUPPORTED  
+DISK_VPD83_GET                                   | SUPPORTED  
+POOL_MEMBER_INFO                                 | SUPPORTED  
+SYS_FW_VERSION_GET                               | SUPPORTED  
+SYS_MODE_GET                                     | SUPPORTED  
+VOLUMES                                          | SUPPORTED  
+VOLUME_CACHE_INFO                                | SUPPORTED  
+VOLUME_DELETE                                    | SUPPORTED  
+VOLUME_ENABLE                                    | SUPPORTED  
+VOLUME_LED                                       | SUPPORTED  
+VOLUME_PHYSICAL_DISK_CACHE_UPDATE                | SUPPORTED  
+VOLUME_PHYSICAL_DISK_CACHE_UPDATE_SYSTEM_LEVEL   | SUPPORTED  
+VOLUME_RAID_CREATE                               | SUPPORTED  
+VOLUME_RAID_INFO                                 | SUPPORTED  
+VOLUME_READ_CACHE_POLICY_UPDATE                  | SUPPORTED  
+VOLUME_READ_CACHE_POLICY_UPDATE_IMPACT_WRITE     | SUPPORTED  
+VOLUME_WRITE_CACHE_POLICY_UPDATE_AUTO            | SUPPORTED  
+VOLUME_WRITE_CACHE_POLICY_UPDATE_IMPACT_READ     | SUPPORTED  
+VOLUME_WRITE_CACHE_POLICY_UPDATE_WB_IMPACT_OTHER | SUPPORTED  
+VOLUME_WRITE_CACHE_POLICY_UPDATE_WRITE_BACK      | SUPPORTED  
+VOLUME_WRITE_CACHE_POLICY_UPDATE_WRITE_THROUGH   | SUPPORTED  
+ACCESS_GROUPS                                    | UNSUPPORTED
+ACCESS_GROUPS_GRANTED_TO_VOLUME                  | UNSUPPORTED
+```
+
+# localdisk for direct attached storage
 Example project showing how the libstoragemgmt-golang package can be used to interact with the libstoragemgmt library. The libstoragemgmt library (LSM), provides interfaces to perform common storage tasks across a variety of backends. This example code, focuses solely on localdisk interaction.
 
 Obviously, as an admin you can just run the lsmcli commands directly, but this project shows how you can interact with libstoragemgmt programmatically for automation, or platform integration.
